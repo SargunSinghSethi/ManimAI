@@ -39,7 +39,6 @@ The system consists of several components working together:
 - Docker and Docker Compose
 - OpenAI API key
 - S3-compatible storage (AWS S3 or MinIO)
-- PostgreSQL database
 
 ## Quick Start
 
@@ -47,41 +46,79 @@ The system consists of several components working together:
 
 ```bash
 git clone https://github.com/SargunSinghSethi/ManimAI.git
+cd ManimAI
 ```
 
 ### Set Up Environment Variables
 
-Create a `.env` file in the backend directory:
+Create a `.env` file in the project root directory:
 
 ```
+# Backend settings
 FLASK_ENV=development
 OPENAI_API_KEY=your_openai_api_key
 DATABASE_URL=postgresql://user:password@postgres:5432/manimdb
 AWS_ACCESS_KEY_ID=your_aws_access_key
 AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-AWS_BUCKET_NAME=your_bucket_name
+AWS_BUCKET_NAME=manim-videos
 AWS_REGION=us-east-1
 S3_ENDPOINT_URL=http://minio:9000  # For MinIO
-```
 
-Create a `.env` file in the frontend directory:
-
-```
+# Frontend settings
 NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+```
+
+### Project Structure
+
+Ensure your project is organized with frontend and backend code in their respective directories:
+
+```
+ManimAI/
+├── docker-compose.yml
+├── .env
+├── frontend/
+    ├── app/ 
+        ├── prompts/
+            ├── page.tsx/        # Page Route for Showing Generating Video  
+        ├── globals.css/
+        ├── layout.tsx/         
+        ├── page.tsx/            # Landing Page
+
+    ├── components/
+        ├── ui/                  # Folder for shadcn UI    
+        ├── code-display.tsx/    # Display Code
+        ├── header.tsx/          # Navigation Bar for the Application
+        ├── job-status.tsx/      # Showing Job Status, when it is being handled
+        ├── manim-generator.tsx/ # Prompt Input Window
+        ├── mode-toggle.tsx/     # Dark/Light Mode Toggle
+        ├── video-player.tsx/    # Showing Video
+    ├── lib/
+        ├── api.ts/              # API Routes Handling Logic Here
+        ├── utils.ts/           
+│   └── Dockerfile
+└── backend/
+    ├── app/                     # Main application package
+    │   ├── __init__.py          # Flask app initialization
+    │   ├── db/                  # Database models and connections
+    │   │   ├── models/          # SQLAlchemy models
+    │   │   └── db.py            # Database connection handling
+    │   ├── sandbox/             # Docker sandbox for code execution
+    │   ├── utils/               # Utility functions
+    │   │   ├── ast_sanitizer.py # Code safety analysis
+    │   │   ├── filters.py       # Prompt safety filters
+    │   │   ├── openai_client.py # OpenAI API integration
+    │   │   └── s3_uploader.py   # S3/MinIO storage utilities
+    │   └── routes.py            # API endpoints
+    ├── alembic/                 # Database migrations
+    ├── .env                     # Environment variables (not in repo)
+    ├── Dockerfile               # Docker configuration
+    └── requirements.txt         # Python dependencies
 ```
 
 ### Start the Services
 
 ```bash
-# Create the shared network
-docker network create manim-network
-
-# Start the backend
-cd manim-ai-backend
-docker-compose up -d
-
-# Start the frontend
-cd manim-ai-frontend
+# Start all services with a single command
 docker-compose up -d
 ```
 
@@ -105,8 +142,8 @@ The frontend will be available at http://localhost:3000 and the backend API at h
 
 For development instructions, refer to the individual README files in the backend and frontend repositories:
 
-- [Backend Development Guide](manim-ai-backend/README.md)
-- [Frontend Development Guide](manim-ai-frontend/README.md)
+- [Backend Development Guide](backend/README.md)
+- [Frontend Development Guide](frontend/README.md)
 
 ## Troubleshooting
 
@@ -129,7 +166,7 @@ docker network inspect manim-network
 
 - Ensure the `NEXT_PUBLIC_API_BASE_URL` is set correctly
 - Check that the backend service is running and accessible
-- Verify network configurations in the Docker Compose files
+- Verify that all services are in the same network
 
 ### Animation Generation Fails
 
