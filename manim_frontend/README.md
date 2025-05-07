@@ -2,7 +2,7 @@
 
 A modern web interface for generating mathematical animations using natural language prompts powered by AI.
 
-![Manim AI Generator](https://api/placeholder/800/400)
+![Manim AI Generator](https://raw.githubusercontent.com/SargunSinghSethi/ManimAI/refs/heads/main/manim_frontend/public/dashboard.png)
 
 ## Overview
 
