@@ -1,0 +1,9 @@
+.venv
+myenv
+.env
+env
+__pycache__
+*.pyc
+*.pyc
+temp
+test.py
