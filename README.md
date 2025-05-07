@@ -43,11 +43,10 @@ The system consists of several components working together:
 
 ## Quick Start
 
-### Clone the Repositories
+### Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/manim-ai-backend.git
-git clone https://github.com/yourusername/manim-ai-frontend.git
+git clone https://github.com/SargunSinghSethi/ManimAI.git
 ```
 
 ### Set Up Environment Variables

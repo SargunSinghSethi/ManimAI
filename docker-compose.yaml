@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./manim_frontend  # Adjust path as needed
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-http://backend:5000}
+    container_name: manim-ai-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-http://backend:5000}
+    networks:
+      - manim-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./manim_backend  # Adjust path as needed
+      dockerfile: Dockerfile
+    container_name: manim-ai-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket for nested Docker
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DATABASE_URL=postgresql://user:password@postgres:5432/manimdb
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME:-manim-videos}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - S3_ENDPOINT_URL=http://minio:9000
+    depends_on:
+      - postgres
+      - minio
+    restart: unless-stopped
+    networks:
+      - manim-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: manim-postgres
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=manimdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - manim-network
+
+  minio:
+    image: minio/minio
+    container_name: manim-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${AWS_ACCESS_KEY_ID:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${AWS_SECRET_ACCESS_KEY:-minioadmin}
+    volumes:
+      - minio_data:/data
+    command: server --console-address ':9001' /data
+    restart: unless-stopped
+    networks:
+      - manim-network
+
+  createbuckets:
+    image: minio/mc
+    container_name: manim-createbuckets
+    depends_on:
+      - minio
+    networks:
+      - manim-network
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc config host add myminio http://minio:9000 ${AWS_ACCESS_KEY_ID:-minioadmin} ${AWS_SECRET_ACCESS_KEY:-minioadmin};
+      /usr/bin/mc mb myminio/${AWS_BUCKET_NAME:-manim-videos} || true;
+      /usr/bin/mc policy set public myminio/${AWS_BUCKET_NAME:-manim-videos};
+      exit 0;
+      "
+
+networks:
+  manim-network:
+    name: manim-network
+    driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:
