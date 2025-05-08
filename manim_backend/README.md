@@ -31,7 +31,7 @@ This backend is designed to be part of a larger system that includes a separate 
 ## Prerequisites
 
 - Docker and Docker Compose
-- Python 3.9+
+- Python 3.12+
 - OpenAI API key
 - S3-compatible storage (AWS S3 or MinIO)
 - PostgreSQL database
