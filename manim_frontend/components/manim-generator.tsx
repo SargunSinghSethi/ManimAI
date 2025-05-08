@@ -39,7 +39,7 @@ export function ManimGenerator() {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && e.metaKey) {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       handleSubmit(e)
     }
   }
